@@ -17,15 +17,15 @@ func main() {
 	key := flag.String("key", "", "key")
 	flag.Parse()
 
-	var s http.Server = http.Server{
-		Addr:    ":https",
-		Handler: nil,
-	}
-
 	logger := log.Default()
 	handler := http.NewServeMux()
 
 	handler.Handle("/", recovers(logging(logger, http.FileServer(http.Dir("/var/carlotz/")))))
+
+	var s http.Server = http.Server{
+		Addr:    ":https",
+		Handler: handler,
+	}
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt)
