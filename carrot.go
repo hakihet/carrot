@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	_ "embed"
 	"flag"
 	"log"
@@ -12,8 +13,8 @@ import (
 
 type Done <-chan struct{}
 
-//go:embed html/plating.ico
-var ico []byte
+//go:embed web/*
+var web embed.FS
 
 func main() {
 	crt := flag.String("crt", "", "cert")
@@ -23,8 +24,7 @@ func main() {
 	logger := log.Default()
 	handler := http.NewServeMux()
 	handler.Handle("/favicon.ico", recovers(logging(logger, fav())))
-
-	handler.Handle("/", recovers(logging(logger, http.FileServer(http.Dir("/var/carlotz")))))
+	handler.Handle("/", recovers(logging(logger, land())))
 
 	var s http.Server = http.Server{
 		Addr:    ":https",
@@ -56,16 +56,24 @@ func main() {
 }
 
 func fav() http.Handler {
+	fav, _ := web.ReadFile("favicon.ico")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
-		w.Write(ico)
+		w.Write(fav)
+	})
+}
+
+func land() http.Handler {
+	land, _ := web.ReadFile("index.html")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write(land)
 	})
 }
 
 func logging(logger *log.Logger, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Println("before")
-		defer logger.Println("after")
+		logger.Printf("Connection from %v requesting %v", r.RemoteAddr, r.RequestURI)
 		h.ServeHTTP(w, r)
 	})
 }
