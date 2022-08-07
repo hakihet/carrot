@@ -12,6 +12,9 @@ import (
 
 type Done <-chan struct{}
 
+//go:embed html/plating.ico
+var ico []byte
+
 func main() {
 	crt := flag.String("crt", "", "cert")
 	key := flag.String("key", "", "key")
@@ -19,8 +22,9 @@ func main() {
 
 	logger := log.Default()
 	handler := http.NewServeMux()
+	handler.Handle("/favicon.ico", recovers(logging(logger, fav())))
 
-	handler.Handle("/", recovers(logging(logger, http.FileServer(http.Dir("/var/carlotz/")))))
+	handler.Handle("/", recovers(logging(logger, http.FileServer(http.Dir("/var/carlotz")))))
 
 	var s http.Server = http.Server{
 		Addr:    ":https",
@@ -49,6 +53,13 @@ func main() {
 		return
 	}
 	<-done
+}
+
+func fav() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write(ico)
+	})
 }
 
 func logging(logger *log.Logger, h http.Handler) http.Handler {
