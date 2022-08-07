@@ -56,7 +56,8 @@ func main() {
 }
 
 func fav() http.Handler {
-	fav, _ := web.ReadFile("favicon.ico")
+	fav, err := web.ReadFile("favicon.ico")
+	log.Println(err)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write(fav)
@@ -64,7 +65,8 @@ func fav() http.Handler {
 }
 
 func land() http.Handler {
-	land, _ := web.ReadFile("index.html")
+	land, err := web.ReadFile("index.html")
+	log.Println(err)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write(land)
