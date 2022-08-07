@@ -24,7 +24,7 @@ func main() {
 	handler := http.NewServeMux()
 	handler.Handle("/favicon.ico", recovers(logging(logger, fav())))
 
-	handler.Handle("/data", recovers(logging(logger, http.FileServer(http.Dir("/var/carlotz")))))
+	handler.Handle("/", recovers(logging(logger, http.FileServer(http.Dir("/var/carlotz")))))
 
 	var s http.Server = http.Server{
 		Addr:    ":https",
