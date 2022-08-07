@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"embed"
-	_ "embed"
 	"flag"
 	"log"
 	"net/http"
@@ -56,7 +55,7 @@ func main() {
 }
 
 func fav() http.Handler {
-	fav, err := web.ReadFile("favicon.ico")
+	fav, err := web.ReadFile("web/favicon.ico")
 	log.Println(err)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
@@ -65,7 +64,7 @@ func fav() http.Handler {
 }
 
 func land() http.Handler {
-	land, err := web.ReadFile("index.html")
+	land, err := web.ReadFile("web/index.html")
 	log.Println(err)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
