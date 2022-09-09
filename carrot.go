@@ -25,7 +25,7 @@ func main() {
 
 	logger := log.New(f, "carrot: ", log.LstdFlags)
 	handler := http.NewServeMux()
-	handler.Handle("/icon.ico", recovers(logging(logger, icon())))
+	handler.Handle("/favicon.ico", recovers(logging(logger, icon())))
 	handler.Handle("/", recovers(logging(logger, land())))
 
 	var s http.Server = http.Server{
