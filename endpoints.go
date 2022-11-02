@@ -1,12 +1,68 @@
 package main
 
 import (
+	"embed"
+	"encoding/json"
 	"log"
 	"net/http"
+	"time"
+	"github.com/golang-jwt/jwt"
 )
 
-func icon() http.Handler {
-	fav, err := web.ReadFile("web/icon.ico")
+// Create the JWT key used to create the signature
+var jwtKey = []byte("my_secret_key")
+
+var users = map[string]string{
+	"me": "123",
+}
+
+type Credentials struct {
+	Account string `json:"account"`
+	Password string `json:"password"`
+}
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+func auth() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var cred Credentials
+		err := json.NewDecoder(r.Body).Decode(&cred)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		expectedPassword, ok := users[cred.Account]
+		if !ok || expectedPassword != cred.Password {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		expirationTime := time.Now().Add(5 * time.Minute)
+		claims := &Claims{
+			Username: cred.Account,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(jwtKey)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:    "token",
+			Value:   tokenString,
+			Expires: expirationTime,
+		})
+	})
+}
+
+func icon(fs embed.FS) http.Handler {
+	fav, err := fs.ReadFile("web/icon.ico")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -16,8 +72,8 @@ func icon() http.Handler {
 	})
 }
 
-func land() http.Handler {
-	land, err := web.ReadFile("web/index.min.html")
+func land(fs embed.FS) http.Handler {
+	land, err := fs.ReadFile("web/index.min.html")
 	if err != nil {
 		log.Panic(err)
 	}
