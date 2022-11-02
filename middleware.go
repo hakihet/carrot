@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-func logging(logger *log.Logger, h http.Handler) http.Handler {
+func logs(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Printf("Connection from %v requesting %v", r.RemoteAddr, r.RequestURI)
+		log.Printf("Connection from %v requesting %v", r.RemoteAddr, r.RequestURI)
 		h.ServeHTTP(w, r)
 	})
 }
